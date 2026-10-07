@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community Credit Ledger: offline barter and mutual credit for communities</title>
+<meta name="description" content="Free, open-source software for communities that trade skills and goods without money, banks, or the Internet. One computer, a USB stick per member, and a ledger anyone can check.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>">
+<style>
+  /* No web fonts and no outside requests: the page loads nothing from anyone. */
+  :root {
+    --paper: #e9f0e4;
+    --paper-deep: #dde8d6;
+    --rule: #b9cdb0;
+    --ink: #1f3b2d;
+    --ink-soft: #46604f;
+    --margin: #b4443a;
+    --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, "URW Palladio L", P052, Georgia, serif;
+    --sans: "Seravek", "Gill Sans Nova", "Gill Sans", "Ubuntu", "Noto Sans", Calibri, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #142219;
+      --paper-deep: #1a2c21;
+      --rule: #2e4636;
+      --ink: #dbe8d6;
+      --ink-soft: #a3bba8;
+      --margin: #e0796e;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    line-height: 1.65;
+  }
+  .page {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem 2.75rem;
+    position: relative;
+  }
+  /* The red margin line of a bookkeeper's ledger sheet. */
+  .page::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 1.5rem;
+    border-left: 2px solid var(--margin);
+    opacity: .7;
+  }
+  h1, h2, h3 { font-weight: 600; line-height: 1.2; }
+  h1 {
+    font-size: clamp(2.1rem, 6vw, 3.1rem);
+    margin: 0 0 1rem;
+    letter-spacing: -.01em;
+    max-width: 18ch;
+  }
+  .lede { font-size: 1.3rem; color: var(--ink-soft); margin: 0 0 2.5rem; max-width: 34em; }
+  h2 { font-size: 1.6rem; margin: 3.5rem 0 .75rem; }
+  h3 { font-size: 1.15rem; margin: 1.5rem 0 .25rem; }
+  p { margin: 0 0 1rem; max-width: 36em; }
+  a { color: var(--ink); text-decoration-color: var(--margin); text-underline-offset: .18em; text-decoration-thickness: 2px; }
+  a:hover { color: var(--margin); }
+  a:focus-visible { outline: 3px solid var(--margin); outline-offset: 3px; border-radius: 2px; }
+
+  /* The ledger: the one bold thing on the page. */
+  figure { margin: 0 0 1rem; }
+  .ledger-wrap { overflow-x: auto; border: 1px solid var(--rule); background: var(--paper-deep); }
+  table.ledger {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 36rem;
+    font-variant-numeric: tabular-nums lining-nums;
+    font-size: 1rem;
+  }
+  .ledger th, .ledger td {
+    padding: .55rem .75rem;
+    border-bottom: 1px solid var(--rule);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .ledger th:first-child, .ledger td:first-child { text-align: left; white-space: normal; }
+  .ledger thead th { font-family: var(--sans); font-weight: 600; font-size: .9rem; color: var(--ink-soft); border-bottom: 2px solid var(--ink); }
+  .ledger .neg { color: var(--margin); }
+  .ledger tfoot td { border-top: 2px solid var(--ink); border-bottom: 3px double var(--ink); font-weight: 600; }
+  .ledger tfoot td.zero { font-size: 1.25rem; }
+  figcaption { font-family: var(--sans); font-size: .95rem; color: var(--ink-soft); margin-top: .6rem; max-width: 40em; }
+
+  ol.steps { padding-left: 1.4rem; margin: 0 0 1rem; max-width: 36em; }
+  ol.steps li { margin-bottom: .6rem; padding-left: .25rem; }
+  ol.steps li::marker { font-weight: 600; color: var(--margin); }
+  ul.plain { padding-left: 1.2rem; max-width: 36em; }
+  ul.plain li { margin-bottom: .4rem; }
+
+  .status {
+    border-left: 4px solid var(--margin);
+    padding: .25rem 0 .25rem 1rem;
+    margin: 1rem 0;
+  }
+  .get { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0 1.5rem; font-family: var(--sans); }
+  .get a {
+    display: inline-block;
+    padding: .65rem 1.1rem;
+    border: 2px solid var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .get a.primary { background: var(--ink); color: var(--paper); }
+  .get a.primary:hover { background: var(--margin); border-color: var(--margin); color: var(--paper); }
+  .get a:not(.primary):hover { border-color: var(--margin); }
+  pre {
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    padding: .9rem 1rem;
+    overflow-x: auto;
+    font-size: .95rem;
+    line-height: 1.5;
+  }
+  footer { margin-top: 4rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); font-family: var(--sans); font-size: .9rem; color: var(--ink-soft); }
+  footer p { max-width: none; }
+
+  @media (max-width: 30rem) {
+    body { font-size: 1.05rem; }
+    .page { padding: 2rem 1rem 3rem 2rem; }
+    .page::before { left: 1rem; }
+    table.ledger { min-width: 0; font-size: .9rem; }
+    .ledger th, .ledger td { padding: .45rem .4rem; }
+    .ledger th:first-child, .ledger td:first-child { min-width: 8.5rem; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+
+  <h1>Keep track of who owes whom, without money or the Internet.</h1>
+  <p class="lede">Community Credit Ledger is free software for a community that trades skills and goods among its members. It runs on one ordinary computer with no network connection. Each member carries a USB stick, and every trade is signed by both people.</p>
+
+  <figure>
+    <div class="ledger-wrap">
+      <table class="ledger">
+        <caption class="visually-hidden" style="position:absolute;left:-9999px">Sample ledger with four members and three trades</caption>
+        <thead>
+          <tr><th scope="col">Trade</th><th scope="col">Ruth</th><th scope="col">Tom</th><th scope="col">Sophea</th><th scope="col">Dara</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Ruth wires Tom's barn, 4 hours at 25</td><td>+100</td><td class="neg">−100</td><td>0</td><td>0</td></tr>
+          <tr><td>Sophea sells Tom two sacks of rice for 40</td><td>+100</td><td class="neg">−140</td><td>+40</td><td>0</td></tr>
+          <tr><td>Dara fixes Ruth's well pump, 2 hours at 30</td><td>+40</td><td class="neg">−140</td><td>+40</td><td>+60</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td>All balances added together</td><td colspan="4" class="zero">0</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <figcaption>Everyone starts at zero. When you do work for someone, you go up and they go down by the same amount, so the whole community always adds up to zero. Tom's −140 isn't a debt to a bank; it means he owes the community 140 credits of work or goods.</figcaption>
+  </figure>
+
+  <h2>What it's for</h2>
+  <p>It's for villages, farms, intentional communities, and neighborhoods that want to trade fairly without cash, cards, or a bank in the middle. An electrician, a farmer, a mechanic, and a cook can trade with each other, even when nobody has what the other wants right now.</p>
+  <p>Each member sets their own rate, and both sides agree on every trade. A shared directory lists what members offer and what they need. If you have a used car to trade and need a roof fixed, you can find someone who wants the car.</p>
+
+  <h2>How a trade works</h2>
+  <ol class="steps">
+    <li>Two members agree on the work or goods and on how many credits it's worth.</li>
+    <li>Both go to the community computer, plug in their USB sticks, and type their PINs.</li>
+    <li>The trade is signed by both members and added to the ledger. It can never be changed or quietly erased afterwards.</li>
+    <li>Each member's stick gets a signed receipt to keep.</li>
+  </ol>
+
+  <h2>What you need</h2>
+  <ul class="plain">
+    <li>One computer running Linux to hold the ledger. It doesn't need an Internet connection.</li>
+    <li>One USB stick per member. A YubiKey-type security key can be used instead.</li>
+    <li>Someone willing to act as the administrator, who enrolls members and keeps backups.</li>
+  </ul>
+  <p>It works for a handful of members or for thousands.</p>
+
+  <h2>Why people can trust the ledger</h2>
+  <p>No single person, not even the administrator, can add, change, or delete a trade. Every entry needs both members' signatures, and each entry is chained to the one before it. Any member can run a check that confirms the whole ledger is intact. The cryptography is standard and widely used, with no home-made methods.</p>
+
+  <h2>Current status</h2>
+  <div class="status">
+    <p><strong>Version 0.1.0, first release.</strong> It works and has a full test suite. Hardware security keys have not yet been tested on real devices, and linking separate communities' ledgers is planned but not built. The code hasn't had an independent security review.</p>
+    <p>ccl is offered as is, with no support. The author doesn't answer questions or take requests. Everything needed to set it up is in the manual. Anyone is free to fork it, improve it, and maintain their own version.</p>
+  </div>
+
+  <h2>Get it</h2>
+  <div class="get">
+    <a class="primary" href="https://github.com/knightsmiles/ccl">Get it on GitHub</a>
+    <a href="https://github.com/knightsmiles/ccl/blob/main/MANUAL.md">Read the manual</a>
+    <a href="https://github.com/knightsmiles/ccl/archive/refs/tags/v0.1.0.tar.gz">Download 0.1.0</a>
+  </div>
+  <p>On Ubuntu or Raspberry Pi OS, with the computer briefly connected to the Internet:</p>
+  <pre>sudo apt install python3-pip
+pip install --break-system-packages https://github.com/knightsmiles/ccl/archive/refs/tags/v0.1.0.tar.gz</pre>
+  <p>After that the computer can stay offline for good. The <a href="https://github.com/knightsmiles/ccl/blob/main/MANUAL.md">manual</a> walks through every step from there, written for someone who has never used Linux.</p>
+
+  <footer>
+    <p>The software is free under the GNU General Public License, version 3 or later. You can use it, change it, and share it, and anyone who shares a changed version must share their changes too. The manual is licensed CC BY-SA 4.0. Copyright © 2026 Scotty Wimberley.</p>
+    <p>This page loads no fonts, scripts, or trackers from anywhere.</p>
+  </footer>
+</main>
+</body>
+</html>

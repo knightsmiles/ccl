@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "community-credit-ledger"
+version = "0.1.0"
+description = "Community Credit Ledger — offline mutual-credit ledger with dual-signed, hash-chained transactions"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE", "LICENSES/*"]
+authors = [{ name = "Scotty Wimberley" }]
+keywords = ["mutual credit", "barter", "community currency", "ledger", "offline"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: Console",
+    "Topic :: Office/Business :: Financial :: Accounting",
+]
+dependencies = ["cryptography>=41"]
+
+[project.optional-dependencies]
+yubikey = ["yubikey-manager>=5"]
+test = ["pytest"]
+
+[project.urls]
+Homepage = "https://knightsmiles.github.io/ccl/"
+Source = "https://github.com/knightsmiles/ccl"
+
+[project.scripts]
+ccl = "ccl.cli:main"
+
+[tool.setuptools]
+packages = ["ccl"]
